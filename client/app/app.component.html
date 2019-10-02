@@ -17,15 +17,18 @@
   </div>
   <div class="form">
     <form (submit)="onSubmit($event)">
-      <input type="file">
-      <input type="submit" value="Upload">
+      <input type="file" accept=".csv" [(ngModel)]="fileToUpload" name="file">
+      <input type="submit" value="Upload" [disabled]="!fileToUpload">
     </form>
   </div>
 </section>
 <section>
-  <table border="1">
+  <table>
+    <caption>{{ currentFile?.name }}</caption>
     <tbody>
-      <tr><td>1</td></tr>
+      <tr *ngFor="let row of data">
+        <td *ngFor="let col of row">{{ col }}</td>
+      </tr>
     </tbody>
   </table>
 </section>

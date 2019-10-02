@@ -7,5 +7,9 @@
 
   table {
     width: 100%;
+    border: 1px solid #666;
+
+    tr:nth-child(even) {background: #CCC}
+    tr:nth-child(odd) {background: #FFF}
   }
 }

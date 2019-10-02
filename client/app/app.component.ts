@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AppService } from './app.service';
 
 @Component({
   selector: 'app-root',
@@ -6,8 +7,17 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  data: Array<Array<any>> = [];
+  fileToUpload: any;
+  currentFile: any;
 
-  onSubmit(event: Event): void {
-    alert('submit');
+  constructor(private readonly appService: AppService) {}
+
+  onSubmit(): void {
+    this.appService.upload(this.fileToUpload).subscribe((results: Array<Array<any>>) => {
+      this.currentFile = this.fileToUpload;
+      this.fileToUpload = undefined;
+      this.data = results;
+    });
   }
 }

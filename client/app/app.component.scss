@@ -1,0 +1,11 @@
+:host {
+  display: flex;
+
+  > section {
+    flex: 1;
+  }
+
+  table {
+    width: 100%;
+  }
+}

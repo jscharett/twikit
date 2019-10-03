@@ -10,5 +10,5 @@ Run `npm run serve` for a dev server. Navigate to `http://localhost:3000/`.
  * Monday - 5
  * Tuesday - 0
  * Wednesday - 3
- * Thursday - 2
+ * Thursday - 3
  * Friday - 0

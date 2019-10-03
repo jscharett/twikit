@@ -16,9 +16,10 @@ export class AppComponent {
 
   constructor(private readonly appService: AppService) {}
 
-  onFileChange(event) {
-    if (event.target.files.length > 0) {
-      this.fileToUpload = event.target.files[0];
+  onFileChange(event: Event) {
+    const input = <HTMLInputElement>event.target;
+    if (input.files.length > 0) {
+      this.fileToUpload = input.files[0];
     }
   }
 

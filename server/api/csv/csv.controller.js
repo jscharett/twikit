@@ -1,6 +1,53 @@
 'use strict';
 
 const formidable = require('formidable');
+const { Transform } = require('stream');
+
+function eolType(stringData) {
+  return stringData.includes('\r\n')
+    ? '\r\n'
+    : stringData.includes('\n')
+      ? '\n'
+      : 'r';
+}
+
+function rowSplitter() {
+  return new Transform({
+    readableObjectMode: true,
+
+    transform(chunk, encoding, callback) {
+      const data = chunk.toString();
+      this.push(data.split(eolType(data)));
+      callback();
+    }
+  });
+}
+
+function commaSplitter () {
+  return new Transform({
+    readableObjectMode: true,
+    writableObjectMode: true,
+
+    transform(chunk, encoding, callback) {
+      this.push(chunk.map((item) => {
+        return item.split(',');
+      }));
+      callback();
+    }
+  });
+}
+
+function objectToString() {
+  return new Transform({
+    writableObjectMode: true,
+
+    transform(chunk, encoding, callback) {
+      this.push(JSON.stringify(chunk) + '\r\n');
+      callback();
+    }
+  });
+}
+
 
 /**
  * Handles validation errors and returns the error to the user.
@@ -14,46 +61,32 @@ function validationError(res, statusCode) {
   };
 }
 
-function csvToJson(req) {
-  return new Promise((resolve, reject) => {
-    new formidable.IncomingForm().parse(req, (err, fields, files) => {
+/**
+ * Parse uploaded csv file and return as json
+ * @param {Express.Request} req - Express Request object with the Request.body contaning the data
+ * @param {*} res  - Express Response object
+ */
+function csvToJson(req, res) {
+    (new formidable.IncomingForm()).parse(req, (err, fields, files) => {
       if (err) {
-        reject(err);
+        validationError(res)(err);
 
         return;
       }
       const fs = require("fs");
       fs.exists(files.file.path, (exist) => {
         if (exist) {
-          const rs = fs.createReadStream(files.file.path);
-          rs.read()
-          // rs.pipe(this);
-          console.log('Files', files.file);
-          resolve([
-            [1,2,3],
-            [4,5,6],
-            [7,8,9]
-          ]);
+          fs.createReadStream(files.file.path)
+            .pipe(rowSplitter())
+            .pipe(commaSplitter())
+            .pipe(objectToString())
+            .pipe(res);
         } else {
-          reject(new Error("File does not exist. Check to make sure the file path to your csv is correct."));
+          validationError(res)(new Error("File does not exist. Check to make sure the file path to your csv is correct."));
         }
-      });
-
     })
   });
 }
 
-
-/**
- * Create a user and save it to the DB. We will send the user details in a POST request in the body of the post.
- * @param {Express.Request} req - Express Request object with the Request.body contaning the data
- * @param {*} res  - Express Response object
- */
-function parse(req, res) {
-  return csvToJson(req).then(function(conversion) { // then when the user saves
-    res.json(conversion);
-  }).catch(validationError(res)); // catch any errors
-}
-
 // Any functions we create, we want to return these functions to the express app to use.
-module.exports = { parse };
+module.exports = { csvToJson };
